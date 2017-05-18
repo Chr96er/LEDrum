@@ -153,6 +153,7 @@ GREEN_PIN = 23
 BLUE_PIN = 24
 current_color = 0x00FF000
 bright = DEFAULT_BRIGHTNESS
+gradiantBrightness = False
 silence = 0 #factor of .3 seconds there has been silence
 
 while True:
