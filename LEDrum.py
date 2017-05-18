@@ -1,5 +1,5 @@
 __author__ = 'Chris'
-__credits__ = [Jeremy Blythe]
+__credits__ = ['Jeremy Blythe']
 
 #Based on instructions on Jeremy's blog: http://jeremyblythe.blogspot.com.au/2013/03/raspberry-pi-midi-driven-solenoid-bell.html
 
