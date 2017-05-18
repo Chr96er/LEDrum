@@ -1,11 +1,14 @@
 __author__ = 'Chris'
-#import RPi.GPIO as GPIO
+
 import pigpio
 import sys
 
 pi = pigpio.pi()
 
-# Colors
+#set default parameters
+DEFAULT_BRIGHTNESS = 100
+
+# define colors
 GREEN = 0x00FF00
 DARKGREEN = 0x009900
 RED = 0xFF0000
@@ -20,6 +23,7 @@ ORANGE2 = 0xFFCC00
 ORANGE3 = 0xFF9900
 YELLOW = 0xFFFF00
 
+# define color sets 
 instColors1 = {
     '\x30':ORANGE1, #'tom1',
     '\x2d':ORANGE2, #'tom2',
@@ -76,6 +80,7 @@ instRed = {
     '\x33':0x360000, #'ride head',
 }
 
+# default color set is blue if no parameter provided
 colorSet = instBlue
 if int(sys.argv[1]) == 0:
     colorSet = instBlue
@@ -86,6 +91,7 @@ elif int(sys.argv[1]) ==2:
 elif int(sys.argv[1]) ==3:
     colorSet = instRed2
 
+# define instrument, depends on midi device
 inst = {
     '\x26':'snare',
     '\x28':'snare rim',
@@ -109,42 +115,12 @@ inst = {
     '\x39':'kick2',
 }
 
-bluedrums = {
-    '\x16': 'hi-hat rim close',
-    '\x2a': 'hi-hat head close',
-    '\x33': 'ride head',
-}
-
-reddrums = {
-    '\x31': 'crash head',
-    '\x37': 'crash rim',
-}
-
-greendrums = {
-    '\x3b': 'ride rim',
-}
-
-purpledrums = {
-    '\x1a': 'hi-hat rim open',
-    '\x2e': 'hi-hat head open',
-}
-
+#these will increase the brightness for a short time
 boosters = {
     '\x26': 'snare',
     '\x24': 'kick',
     '\x39': 'kick2',
 }
-
-def resetAll():
-    pi.set_PWM_dutycycle(RED_PIN, 0)
-    pi.set_PWM_dutycycle(GREEN_PIN, 0)
-    pi.set_PWM_dutycycle(BLUE_PIN, 0)
-
-
-def colorGpioOutputAndPrint(pin, brightness):
-    resetAll()
-    pi.set_PWM_dutycycle(pin, brightness)
-    print("Pin: " + str(pin) + ", brightness: " + str(brightness))
 
 def hexOutputAndPrintCurrentColor():
 
@@ -163,49 +139,32 @@ def hexOutputAndPrintCurrentColor():
     pi.set_PWM_dutycycle(BLUE_PIN, b)
     print("Blue, brightness: " + str(b))
 
-def hex_to_rgb(value):
-    value = value.lstrip('#')
-    lv = len(value)
-    return tuple(int(value[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))
-
-
+#open device, midi device specific
 f = open('/dev/snd/midiC1D0')
 
 note = False
-
 
 # Initialize lights
 RED_PIN = 22
 GREEN_PIN = 23
 BLUE_PIN = 24
 current_color = 0x00FF000
-previous_color = current_color
-bright = 100
-silence = 0 #amount of 300ms there has been silence
-BRIGHTNESS_INCREASEMENT = 3
-BRIGHTNESS_DECREASEMENT = 3
+bright = DEFAULT_BRIGHTNESS
+silence = 0 #factor of .3 seconds there has been silence
 
 while True:
     b = f.read(1)
-    if bright <> 100:
+    if bright > 100 and not gradiantBrightness:
+        #decrease brightness by 50 every .3 seconds
         bright = max(bright - 50 * silence, 100)
         hexOutputAndPrintCurrentColor()
-
-    # if backup_color <> current_color:
-    #     backup_color = current_color
-    #     hexOutputAndPrintCurrentColor()
 
     if b == '\xfe':
         #No input message received via midi every .3 seconds
         silence += 1
         print("Silence")
 
-    # GPIO.output(GPIO_NUM, False)
     else:
-        #               if b == '\x40':
-        #                       print hex(ord(b))
-        #               else:
-        #                       print hex(ord(b)),
         silence = 0
         if b == '\x99':
             note = True
@@ -213,11 +172,12 @@ while True:
             if b in inst:
                 print inst[b]
 
-                # Main functionality here!
+                # boost light or change color
                 if b in boosters:
                     bright = 250
                     hexOutputAndPrintCurrentColor()
-                    bright = 100
+                    if gradiantBrightness:
+                        bright = DEFAULT_BRIGHTNESS
 
                 elif b in colorSet:
                     current_color = colorSet[b]
@@ -226,6 +186,4 @@ while True:
 
             note = False
 
-
     hexOutputAndPrintCurrentColor()
-    previous_color = current_color
