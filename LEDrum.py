@@ -26,7 +26,7 @@ ORANGE2 = 0xFFCC00
 ORANGE3 = 0xFF9900
 YELLOW = 0xFFFF00
 
-# define color sets 
+# define color sets
 instColors1 = {
     '\x30':ORANGE1, #'tom1',
     '\x2d':ORANGE2, #'tom2',
@@ -174,7 +174,7 @@ while True:
             note = True
         elif note:
             if b in inst:
-                print inst[b]
+                print(inst[b])
 
                 # boost light or change color
                 if b in boosters:
@@ -186,7 +186,7 @@ while True:
                 elif b in colorSet:
                     current_color = colorSet[b]
             else:
-                print hex(ord(b))
+                print(hex(ord(b)))
 
             note = False
 
